@@ -1,0 +1,39 @@
+---
+- name: Configure GRUB
+  become: true
+  block:
+    - name: Configure GRUB | Set GRUB timeout
+      ansible.builtin.lineinfile:
+        path: "{{ common_grub_default_config }}"
+        regexp: "^GRUB_TIMEOUT="
+        line: "GRUB_TIMEOUT=0"
+        backup: true
+      notify:
+        - update grub
+
+    - name: Configure GRUB | Hide GRUB
+      ansible.builtin.lineinfile:
+        path: "{{ common_grub_default_config }}"
+        insertafter: "^GRUB_TIMEOUT="
+        line: "GRUB_TIMEOUT_STYLE=hidden"
+        backup: true
+      notify:
+        - update grub
+
+    - name: Configure GRUB | Disable GRUB background
+      ansible.builtin.lineinfile:
+        path: "{{ common_grub_default_config }}"
+        line: 'GRUB_BACKGROUND=""'
+        insertafter: "GRUB_TIMEOUT_STYLE=hidden"
+        backup: true
+      notify:
+        - update grub
+
+    - name: Configure GRUB | Set GRUB_CMDLINE
+      ansible.builtin.lineinfile:
+        path: "{{ common_grub_default_config }}"
+        regexp: "^GRUB_CMDLINE_LINUX_DEFAULT="
+        line: 'GRUB_CMDLINE_LINUX_DEFAULT="{{ common_grub_cmdline_linux_default }}"'
+        backup: true
+      notify:
+        - update grub

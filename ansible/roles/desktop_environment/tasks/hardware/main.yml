@@ -1,0 +1,8 @@
+---
+- name: Configure laptop
+  ansible.builtin.include_tasks:
+    file: laptop.yml
+
+- name: Configure virtual machine
+  ansible.builtin.include_tasks:
+    file: vm.yml

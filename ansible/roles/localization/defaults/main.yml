@@ -1,0 +1,10 @@
+---
+# System locale (must be an UTF-8 locale, e.g. en_US.UTF-8 or ru_RU.UTF-8)
+localization_locale: "{{ LOCALE | default('en_US.UTF-8') }}"
+
+# XKB keyboard layouts available in Gnome (the first one is the default)
+localization_input_sources: "{{ INPUT_SOURCES | default(['us', 'ru']) }}"
+
+# XKB options (keyboard layout switching, etc.)
+localization_input_xkb_options:
+  - grp:caps_toggle

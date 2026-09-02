@@ -1,0 +1,28 @@
+---
+- name: Configure localhost Desktop Environment
+  hosts: localhost
+  gather_facts: true
+
+  pre_tasks:
+    - name: Run preflight checks
+      ansible.builtin.import_tasks: preflight.yml
+      tags:
+        - always
+
+  roles:
+    - role: common
+      tags:
+        - common
+    - role: desktop_environment
+      tags:
+        - desktop_environment
+    - role: localization
+      tags:
+        - localization
+
+  post_tasks:
+    - name: Show final message
+      ansible.builtin.debug:
+        msg: "Installation is complete. Reboot the system to start the Gnome session: sudo reboot"
+      tags:
+        - always

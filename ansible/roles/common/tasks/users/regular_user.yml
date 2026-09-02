@@ -1,0 +1,57 @@
+---
+- name: Create users config directory
+  ansible.builtin.file:
+    path: "{{ [common_user_home, '.config'] | path_join }}"
+    state: directory
+    owner: "{{ USERNAME }}"
+    group: "{{ USERNAME }}"
+
+- name: Add user to groups and set default shell
+  become: true
+  ansible.builtin.user:
+    name: "{{ USERNAME }}"
+    shell: "/usr/bin/{{ common_shell_package_name }}"
+    groups: "{{ common_user_groups }}"
+    append: true
+
+- name: Copy shell config file to user home directory
+  ansible.builtin.copy:
+    src: "{{ common_shell_config }}"
+    dest: "{{ [common_user_home, common_shell_config] | path_join }}"
+    owner: "{{ USERNAME }}"
+    group: "{{ USERNAME }}"
+    mode: "0600"
+
+- name: Copy oh-my-zsh config files to user home directory
+  ansible.posix.synchronize:
+    src: "{{ common_oh_my_zsh_tmp }}"
+    dest: "{{ common_user_home }}"
+    delete: true
+    rsync_opts:
+      - "--exclude=.git"
+      - "--chown={{ USERNAME }}:{{ USERNAME }}"
+
+- name: Regular user configure ssh
+  block:
+    - name: Regular user configure ssh | Create ~/.ssh
+      ansible.builtin.file:
+        path: "{{ [common_user_home, '.ssh'] | path_join }}"
+        state: directory
+        owner: "{{ USERNAME }}"
+        group: "{{ USERNAME }}"
+        mode: "0700"
+
+    - name: Regular user configure ssh | Create user ssh configuration files
+      ansible.builtin.file:
+        path: "{{ [common_user_home, '.ssh', item] | path_join }}"
+        state: touch
+        owner: "{{ USERNAME }}"
+        group: "{{ USERNAME }}"
+        mode: "0600"
+      loop: "{{ common_ssh_configuration_files }}"
+
+    - name: Regular user configure ssh | Configure user config_ssh
+      ansible.builtin.lineinfile:
+        path: "{{ [common_user_home, '.ssh', 'config_ssh'] | path_join }}"
+        line: "{{ item }}"
+      loop: "{{ common_ssh_config_parameters }}"

@@ -1,0 +1,185 @@
+---
+- name: Configure user autologin
+  become: true
+  community.general.ini_file:
+    path: "{{ desktop_environment_gnome_autologin_configuration_file }}"
+    section: daemon
+    option: "{{ item.option }}"
+    value: "{{ item.value }}"
+    state: "{{ 'present' if desktop_environment_gdm_autologin else 'absent' }}"
+    no_extra_spaces: true
+    owner: root
+    group: root
+    mode: "0644"
+  loop: "{{ desktop_environment_gnome_autologin_options }}"
+  loop_control:
+    label: "{{ item.option }}"
+
+- name: Set the default terminal emulator
+  become: true
+  block:
+    - name: Set the default terminal emulator | Find the executable file of the default text editor
+      ansible.builtin.find:
+        paths:
+          - /usr/bin
+          - /usr/local/bin
+        file_type: file
+        patterns: "{{ desktop_environment_default_terminal_emulator }}"
+        recurse: false
+      register: _path_to_default_terminal_emulator
+
+    - name: Set the default terminal emulator | Set the default terminal emulator alternatives
+      community.general.alternatives:
+        name: x-terminal-emulator
+        path: "{{ _path_to_default_terminal_emulator.files[0].path }}"
+        priority: 20
+
+- name: Copy user dotfiles
+  ansible.builtin.copy:
+    src: "dotfiles/{{ item }}"
+    dest: "{{ desktop_environment_user_home }}"
+    owner: "{{ USERNAME }}"
+    group: "{{ USERNAME }}"
+  loop: "{{ desktop_environment_user_dotfiles }}"
+
+- name: Install icon themes | Check icon themes are configured
+  ansible.builtin.assert:
+    that:
+      - desktop_environment_icon_themes | length > 0
+      - desktop_environment_icon_themes | selectattr('name', 'defined') | list | length == desktop_environment_icon_themes | length
+      - desktop_environment_icon_themes | selectattr('repo_url', 'defined') | list | length == desktop_environment_icon_themes | length
+    fail_msg: >-
+      Every item in desktop_environment_icon_themes must define 'name' and 'repo_url'.
+
+- name: Install icon themes | Check selected icon theme is listed
+  ansible.builtin.assert:
+    that:
+      - desktop_environment_icon_theme in (desktop_environment_icon_themes | map(attribute='name') | list)
+    fail_msg: >-
+      Selected icon theme '{{ desktop_environment_icon_theme }}' is not listed in
+      desktop_environment_icon_themes.
+
+- name: Install icon themes
+  ansible.builtin.include_tasks:
+    file: install_icon_theme.yml
+    apply:
+      become: true
+      become_user: "{{ USERNAME }}"
+  loop: "{{ desktop_environment_icon_themes }}"
+  loop_control:
+    loop_var: desktop_environment_icon_theme_item
+    label: "{{ desktop_environment_icon_theme_item.name }}"
+
+- name: Configure Gnome settings
+  vars:
+    _wallpaper_directory: "{{ [desktop_environment_user_home, desktop_environment_gnome_wallpaper_directory] | path_join }}"
+  block:
+    - name: Configure Gnome settings | Find role wallpapers
+      ansible.builtin.find:
+        paths: "{{ [role_path, 'files', desktop_environment_gnome_wallpaper_directory] | path_join }}"
+        file_type: file
+        patterns:
+          - "*.jpg"
+          - "*.jpeg"
+          - "*.png"
+          - "*.webp"
+      register: _desktop_environment_gnome_wallpaper_files
+      delegate_to: localhost
+      become: false
+
+    - name: Configure Gnome settings | Check role wallpapers exist
+      ansible.builtin.assert:
+        that:
+          - _desktop_environment_gnome_wallpaper_files.files | length > 0
+        fail_msg: "No wallpapers found in {{ [role_path, 'files', desktop_environment_gnome_wallpaper_directory] | path_join }}."
+
+    - name: Configure Gnome settings | Select random wallpaper
+      ansible.builtin.set_fact:
+        desktop_environment_gnome_wallpaper: >-
+          {{
+            (
+              _desktop_environment_gnome_wallpaper_files.files
+              | map(attribute='path')
+              | map('basename')
+              | list
+            )
+            | random
+          }}
+
+    - name: Configure Gnome settings | Create Gnome wallpapers directory
+      ansible.builtin.file:
+        path: "{{ _wallpaper_directory }}"
+        state: directory
+        owner: "{{ USERNAME }}"
+        group: "{{ USERNAME }}"
+        mode: "0755"
+
+    - name: Configure Gnome settings | Copy Gnome wallpapers
+      ansible.builtin.copy:
+        src: "{{ desktop_environment_gnome_wallpaper_directory }}/"
+        dest: "{{ _wallpaper_directory }}/"
+        owner: "{{ USERNAME }}"
+        group: "{{ USERNAME }}"
+        mode: "0644"
+
+    - name: Configure Gnome settings | Set selected wallpaper path
+      ansible.builtin.set_fact:
+        desktop_environment_selected_wallpaper: "{{ [_wallpaper_directory, desktop_environment_gnome_wallpaper] | path_join }}"
+
+    - name: Configure Gnome settings | Apply Gnome settings with dconf
+      become: true
+      become_user: "{{ USERNAME }}"
+      community.general.dconf:
+        key: "{{ item.key }}"
+        value: "{{ item.value }}"
+        state: present
+      loop: "{{ _desktop_environment_dconf_all_settings | dict2items }}"
+      loop_control:
+        label: "{{ item.key }}"
+      vars:
+        _desktop_environment_dconf_all_settings: >-
+          {{
+            desktop_environment_dconf_settings
+            | combine(desktop_environment_dconf_power_settings)
+            | combine(desktop_environment_dconf_touchpad_settings)
+            | combine({
+                '/org/gnome/desktop/background/picture-uri': "'file://" ~ desktop_environment_selected_wallpaper ~ "'",
+                '/org/gnome/desktop/background/picture-uri-dark': "'file://" ~ desktop_environment_selected_wallpaper ~ "'"
+              })
+          }}
+
+- name: Set default applications
+  community.general.ini_file:
+    path: "{{ [desktop_environment_user_home, '.config/mimeapps.list'] | path_join }}"
+    section: Default Applications
+    option: "{{ item.key }}"
+    value: "{{ item.value }}"
+    no_extra_spaces: true
+    owner: "{{ USERNAME }}"
+    group: "{{ USERNAME }}"
+    mode: "0644"
+  loop: "{{ desktop_environment_default_applications | dict2items }}"
+  loop_control:
+    label: "{{ item.key }}"
+
+- name: Set user avatar
+  become: true
+  vars:
+    _user_avatar: "{{ ['/', desktop_environment_user_avatar_file] | path_join }}"
+  block:
+    - name: Set user avatar | Create user avatar config file
+      ansible.builtin.template:
+        force: true
+        src: "{{ desktop_environment_user_avatar_config_file_template }}"
+        dest: "{{ desktop_environment_user_avatar_config_file }}"
+        owner: root
+        group: root
+        mode: "0600"
+
+    - name: Set user avatar | Copy user avatar
+      ansible.builtin.copy:
+        src: "{{ desktop_environment_user_avatar_file }}"
+        dest: "{{ _user_avatar }}"
+        owner: root
+        group: root
+        mode: "0644"

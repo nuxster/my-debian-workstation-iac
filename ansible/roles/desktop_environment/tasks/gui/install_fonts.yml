@@ -1,0 +1,75 @@
+---
+- name: Install fonts
+  become: true
+  vars:
+    _user_fonts_directory: "{{ [desktop_environment_user_home, desktop_environment_user_fonts_dir] | path_join }}"
+  block:
+    - name: Install fonts | Install font packages
+      ansible.builtin.apt:
+        name: "{{ desktop_environment_font_packages }}"
+        state: present
+
+    - name: Install fonts | Deleting downloaded packages that are no longer required
+      ansible.builtin.apt:
+        clean: true
+
+    - name: Install fonts | Installing and configuring custom fonts
+      become_user: "{{ USERNAME }}"
+      block:
+        - name: Install fonts | Installing and configuring custom fonts | Create fonts directories
+          ansible.builtin.file:
+            path: "{{ [_user_fonts_directory, item] | path_join }}"
+            state: directory
+            recurse: true
+            mode: "0755"
+          loop: "{{ desktop_environment_nerd_fonts + [desktop_environment_source_code_pro_font_name] }}"
+
+        - name: Install fonts | Installing and configuring custom fonts | Download Nerd Fonts
+          ansible.builtin.get_url:
+            url: "{{ desktop_environment_nerd_fonts_repo_url }}{{ item }}.tar.xz"
+            dest: "{{ [desktop_environment_tmp_dir, item ~ '.tar.xz'] | path_join }}"
+            mode: "0644"
+            timeout: 60
+            force: false
+          loop: "{{ desktop_environment_nerd_fonts }}"
+          loop_control:
+            label: "{{ item }}"
+          register: _desktop_environment_nerd_font_download
+          until: _desktop_environment_nerd_font_download is succeeded
+          retries: 5
+          delay: 10
+
+        - name: Install fonts | Installing and configuring custom fonts | Unarchive Nerd Fonts
+          ansible.builtin.unarchive:
+            src: "{{ [desktop_environment_tmp_dir, item.item ~ '.tar.xz'] | path_join }}"
+            dest: "{{ [_user_fonts_directory, item.item] | path_join }}"
+            remote_src: true
+          loop: "{{ _desktop_environment_nerd_font_download.results }}"
+          loop_control:
+            label: "{{ item.item }}"
+          when:
+            - item is changed
+          notify:
+            - update font cache
+
+        - name: Install fonts | Installing and configuring custom fonts | Download Source Code Pro Fonts
+          ansible.builtin.get_url:
+            url: "{{ desktop_environment_source_code_pro_url }}"
+            dest: "{{ [desktop_environment_tmp_dir, desktop_environment_source_code_pro_archive] | path_join }}"
+            mode: "0644"
+            timeout: 60
+            force: false
+          register: _desktop_environment_source_code_pro_download
+          until: _desktop_environment_source_code_pro_download is succeeded
+          retries: 5
+          delay: 10
+
+        - name: Install fonts | Installing and configuring custom fonts | Unarchive Source Code Pro Fonts
+          ansible.builtin.unarchive:
+            src: "{{ [desktop_environment_tmp_dir, desktop_environment_source_code_pro_archive] | path_join }}"
+            dest: "{{ [_user_fonts_directory, desktop_environment_source_code_pro_font_name] | path_join }}"
+            remote_src: true
+          when:
+            - _desktop_environment_source_code_pro_download is changed
+          notify:
+            - update font cache

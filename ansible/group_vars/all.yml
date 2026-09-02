@@ -1,0 +1,60 @@
+---
+# CPU manufacturer: intel or amd
+CPU: intel
+
+# Is there an SSD device in the system
+SSD_DEVICES: true
+
+# Are you on: desktop, laptop or vm
+DESTINATION_DEVICE: desktop
+
+# The name of your user in the system and the user home directory
+# (defaults to the user running the playbook)
+USERNAME: "{{ ansible_user_id }}"
+USER_HOME: "/home/{{ USERNAME }}"
+
+# User's timezone
+TIMEZONE: Europe/Moscow
+
+# The default text editor
+DEFAULT_TEXT_EDITOR_PACKAGE: neovim
+
+# Install Libre Office packages
+OFFICE: false
+
+# Install printing (CUPS) packages
+PRINTING: false
+
+# System locale (must be an UTF-8 locale, e.g. en_US.UTF-8 or ru_RU.UTF-8)
+LOCALE: en_US.UTF-8
+
+# XKB keyboard layouts available in Gnome (the first one is the default)
+INPUT_SOURCES:
+  - us
+  - ru
+
+# Install hypervisor (QEMU/Libvirt)
+HYPERVISOR: false
+
+# Upgrade all packages
+UPGRADE_PACKAGES: true
+
+# Install ntp daemon (ntpd/chrony) packages
+NTP_DAEMON: true
+
+# APT source mirror (uncomment to override deb.debian.org/security.debian.org)
+# APT_SOURCE_MIRROR_URL: mirror.yandex.ru
+# APT_SOURCE_SECURITY_MIRROR_URL: security.mirror.yandex.ru
+
+# Debian release used in sources.list: a codename (trixie), stable or unstable
+# (uncomment to override; defaults to the codename of the installed release)
+# DEBIAN_RELEASE: trixie
+
+# Reconfigure network for network-manager-gnome
+RECONFIGURE_NETWORK: true
+
+# Enable GDM autologin (the LUKS passphrase is still asked at boot)
+GDM_AUTOLOGIN: true
+
+# TMP directory
+TMP_DIRECTORY: /tmp

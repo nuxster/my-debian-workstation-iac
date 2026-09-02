@@ -1,0 +1,25 @@
+---
+- name: Set default shell for super user
+  become: true
+  ansible.builtin.user:
+    name: root
+    shell: "/usr/bin/{{ common_shell_package_name }}"
+
+- name: Copy shell config file to super user home directory
+  become: true
+  ansible.builtin.copy:
+    src: "{{ common_shell_config }}"
+    dest: "{{ ['/root', common_shell_config] | path_join }}"
+    owner: root
+    group: root
+    mode: "0600"
+
+- name: Copy oh-my-zsh config files to user home directory
+  become: true
+  ansible.posix.synchronize:
+    src: "{{ common_oh_my_zsh_tmp }}"
+    dest: /root
+    delete: true
+    rsync_opts:
+      - "--exclude=.git"
+      - "--chown=root:root"

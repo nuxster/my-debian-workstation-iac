@@ -1,0 +1,10 @@
+---
+- name: Configure virtual machine
+  when:
+    - desktop_environment_destination_device == 'vm'
+  become: true
+  block:
+    - name: Configure virtual machine | Install guest packages for vm
+      ansible.builtin.apt:
+        name: "{{ desktop_environment_for_vm_packages }}"
+        state: present

@@ -1,0 +1,3 @@
+ansible>=12.0.0
+# Required by the community.general.dconf module
+psutil>=7.0.0

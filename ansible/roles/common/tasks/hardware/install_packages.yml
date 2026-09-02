@@ -1,0 +1,13 @@
+---
+- name: Install packages
+  become: true
+  block:
+    - name: Install packages | Install drivers & kernel headers
+      ansible.builtin.apt:
+        name: "{{ _all_hardware_packages | flatten }}"
+        state: present
+      vars:
+        _all_hardware_packages:
+          - "{{ common_kernel_headers_packages }}"
+          - "{{ common_microcode_packages }}"
+          - "{{ common_firmware_packages }}"

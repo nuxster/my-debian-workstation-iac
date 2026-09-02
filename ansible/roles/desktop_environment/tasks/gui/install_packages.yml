@@ -1,0 +1,30 @@
+---
+- name: Install desktop environment packages
+  become: true
+  block:
+    - name: Install desktop environment packages | Update apt cache
+      ansible.builtin.apt:
+        update_cache: true
+        cache_valid_time: 3600 # 1h
+
+    - name: Install desktop environment packages | Install desktop environment packages
+      ansible.builtin.apt:
+        name: "{{ _all_gnome_packages | flatten }}"
+        state: present
+      vars:
+        _all_gnome_packages:
+          - "{{ desktop_environment_gnome_core_packages }}"
+          - "{{ desktop_environment_general_gnome_packages }}"
+          - "{{ desktop_environment_gnome_shell_extension_packages }}"
+          - "{{ desktop_environment_gnome_power_management_packages }}"
+          - "{{ desktop_environment_gnome_network_manager_packages }}"
+          - "{{ desktop_environment_gnome_bluetooth_support_packages }}"
+          - "{{ desktop_environment_gnome_additional_utility_packages }}"
+          - "{{ desktop_environment_nautilus_additional_packages }}"
+          - "{{ desktop_environment_network_utility_packages }}"
+          - "{{ desktop_environment_multimedia_utility_packages }}"
+          - "{{ desktop_environment_icon_theme_packages }}"
+
+    - name: Install desktop environment packages | Deleting downloaded packages that are no longer required
+      ansible.builtin.apt:
+        clean: true

@@ -1,0 +1,20 @@
+---
+- name: Install and configure Plymouth
+  become: true
+  block:
+    - name: Install and configure Plymouth | Install packages
+      ansible.builtin.apt:
+        name: "{{ item }}"
+        state: present
+      loop: "{{ common_plymouth_packages }}"
+
+    - name: Install and configure Plymouth | Configure Plymouth
+      ansible.builtin.git:
+        repo: "{{ item.value }}"
+        dest: "{{ [common_tmp_dir, item.key] | path_join }}"
+        update: false
+        force: false
+      loop:
+        - "{{ common_plymouth_theme | dict2items | first }}"
+      notify:
+        - make plymouth theme

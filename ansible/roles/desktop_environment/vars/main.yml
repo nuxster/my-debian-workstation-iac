@@ -1,0 +1,26 @@
+---
+# User
+
+### Gnome user autologin settings
+desktop_environment_gnome_autologin_configuration_file: /etc/gdm3/daemon.conf
+desktop_environment_gnome_autologin_options:
+  - option: AutomaticLoginEnable
+    value: "True"
+  - option: AutomaticLogin
+    value: "{{ USERNAME }}"
+
+### Fonts
+desktop_environment_user_fonts_dir: .local/share/fonts
+
+### Dotfiles
+desktop_environment_user_dotfiles:
+  - .config
+  #- .ssh
+
+### Gnome
+desktop_environment_gnome_wallpaper_directory: .local/share/backgrounds
+
+### Avatar
+desktop_environment_user_avatar_file: var/lib/AccountsService/icons/.face
+desktop_environment_user_avatar_config_file: "{{ ['/var/lib/AccountsService/users', USERNAME] | path_join }}"
+desktop_environment_user_avatar_config_file_template: var/lib/AccountsService/users/username.j2

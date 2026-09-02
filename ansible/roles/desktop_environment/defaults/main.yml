@@ -1,0 +1,391 @@
+---
+# General
+desktop_environment_tmp_dir: "{{ TMP_DIRECTORY | default('/tmp') }}"
+desktop_environment_user_home: "{{ USER_HOME | default('/home/' ~ USERNAME) }}"
+desktop_environment_gdm_autologin: "{{ GDM_AUTOLOGIN | default(true) | bool }}"
+
+# Fonts
+
+### Custom fonts
+
+#### Nerd Fonts
+desktop_environment_nerd_fonts_version: v3.4.0
+desktop_environment_nerd_fonts_repo_url: "https://github.com/ryanoasis/nerd-fonts/releases/download/{{ desktop_environment_nerd_fonts_version }}/"
+desktop_environment_nerd_fonts:
+  - Iosevka
+  - Terminus
+  - JetBrainsMono
+  - Hack
+
+#### Source Code Pro Fonts
+desktop_environment_source_code_pro_font_name: source-code-pro
+desktop_environment_source_code_pro_version: 2.042R-u/1.062R-i/1.026R-vf
+desktop_environment_source_code_pro_archive: OTF-source-code-pro-2.042R-u_1.062R-i.zip
+desktop_environment_source_code_pro_url: >-
+  https://github.com/adobe-fonts/source-code-pro/releases/download/{{
+    desktop_environment_source_code_pro_version | replace('/', '%2F')
+  }}/{{ desktop_environment_source_code_pro_archive }}
+
+#### Icon themes
+desktop_environment_icon_theme: MoreWaita
+
+desktop_environment_icon_theme_packages:
+  - libgtk-3-bin
+  - xdg-utils
+
+desktop_environment_icon_themes:
+  - name: MoreWaita
+    repo_url: https://github.com/somepaulo/MoreWaita.git
+    version: main
+    destination: "{{ [desktop_environment_user_home, '.local/share/icons', 'MoreWaita'] | path_join }}"
+    exclude:
+      - "*.build"
+      - "*.sh"
+      - "*.py"
+      - "*.md"
+      - ".git"
+      - ".github"
+      - ".gitignore"
+      - "_dev"
+
+  # - name: SomeOtherTheme
+  #   repo_url: https://github.com/example/theme.git
+  #   version: main
+  #   destination: "{{ [desktop_environment_user_home, '.local/share/icons', 'SomeOtherTheme'] | path_join }}"
+  #   exclude:
+  #     - ".git"
+  #     - ".github"
+  #     - "*.md"
+
+### Packages
+desktop_environment_font_packages:
+  - fontconfig
+  - fonts-cantarell
+  - fonts-dejavu
+  - fonts-firacode
+  - fonts-font-awesome
+  - fonts-freefont-ttf
+  - fonts-inconsolata
+  - fonts-liberation
+  - fonts-noto
+  - fonts-opensymbol
+  - fonts-powerline
+  - fonts-roboto
+  - fonts-symbola
+
+# Packages
+
+### kitty, gnome-terminal
+desktop_environment_default_terminal_emulator: kitty
+
+# Core components installed explicitly instead of relying on apt Recommends
+desktop_environment_gnome_core_packages:
+  - dbus-user-session
+  - gnome-control-center
+  - gnome-shell
+  - pipewire-audio
+  - xdg-desktop-portal-gnome
+  - xdg-user-dirs
+  - xdg-user-dirs-gtk
+  - xwayland
+
+desktop_environment_general_gnome_packages:
+  - gnome-session
+  - gnome-text-editor
+  - gnome-themes-extra-data
+  - gdm3
+  - dconf-cli
+  - "{{ desktop_environment_default_terminal_emulator }}"
+
+desktop_environment_gnome_shell_extension_packages:
+  - gnome-shell-extensions
+  - gnome-shell-extension-manager
+  - gnome-shell-extension-tiling-assistant
+  - gnome-shell-extension-appindicator
+  - gnome-shell-extension-caffeine
+  - gnome-shell-extension-dashtodock
+  - gnome-shell-extensions-extra
+
+# power-profiles-daemon conflicts with tlp, which is used on laptops
+desktop_environment_gnome_power_management_packages: >-
+  {{
+    ['powermgmt-base']
+    + ([] if desktop_environment_destination_device == 'laptop' else ['power-profiles-daemon'])
+  }}
+
+desktop_environment_gnome_network_manager_packages:
+  - network-manager-gnome
+  - network-manager-openvpn-gnome
+
+desktop_environment_gnome_bluetooth_support_packages:
+  - rfkill
+  - bluez
+  - bluez-tools
+  - bluez-obexd
+  - gnome-bluetooth-sendto
+
+desktop_environment_gnome_additional_utility_packages:
+  - eog
+  - evince
+  - gnome-calculator
+  - gnome-disk-utility
+  - gnome-system-monitor
+  - gnome-keyring
+  - seahorse
+  - libnotify-bin
+
+desktop_environment_nautilus_additional_packages:
+  - nautilus
+  - nautilus-wipe
+  - ffmpegthumbnailer
+  - gvfs-backends
+  - gvfs-fuse
+
+desktop_environment_network_utility_packages:
+  - remmina
+  - remmina-plugin-rdp
+  - remmina-plugin-vnc
+  - firefox-esr
+  - thunderbird
+
+desktop_environment_multimedia_utility_packages:
+  - celluloid
+  - cmus
+
+### Gnome Shell favorite apps (dock), extended by office/hypervisor flags
+desktop_environment_gnome_favorite_apps: >-
+  {{
+    [
+      'firefox-esr.desktop',
+      'thunderbird.desktop',
+      'remmina-gnome.desktop',
+      'org.gnome.Nautilus.desktop',
+      desktop_environment_default_terminal_emulator ~ '.desktop',
+    ]
+    + (['libreoffice-writer.desktop', 'libreoffice-calc.desktop'] if desktop_environment_office else [])
+    + (['virt-manager.desktop'] if desktop_environment_hypervisor else [])
+  }}
+
+### Gnome Shell extensions enabled on login
+desktop_environment_gnome_enabled_extensions:
+  - caffeine@patapon.info
+  - drive-menu@gnome-shell-extensions.gcampax.github.com
+  - tiling-assistant@leleat-on-github
+  - ubuntu-appindicators@ubuntu.com
+  - dash-to-dock@micxgx.gmail.com
+  - system-monitor@gnome-shell-extensions.gcampax.github.com
+
+### Gnome settings applied with dconf (values in GVariant text format)
+desktop_environment_dconf_settings:
+  # Interface
+  /org/gnome/desktop/interface/color-scheme: "'prefer-dark'"
+  /org/gnome/desktop/interface/gtk-theme: "'Adwaita-dark'"
+  /org/gnome/desktop/interface/icon-theme: "'{{ desktop_environment_icon_theme }}'"
+  /org/gnome/desktop/interface/clock-format: "'24h'"
+  /org/gnome/desktop/interface/accent-color: "'slate'"
+
+  # Workspaces
+  /org/gnome/mutter/dynamic-workspaces: "true"
+  /org/gnome/mutter/auto-maximize: "false"
+  /org/gnome/desktop/wm/preferences/num-workspaces: "5"
+
+  # Free <Super>1..9 for workspace switching
+  /org/gnome/shell/keybindings/switch-to-application-1: "@as []"
+  /org/gnome/shell/keybindings/switch-to-application-2: "@as []"
+  /org/gnome/shell/keybindings/switch-to-application-3: "@as []"
+  /org/gnome/shell/keybindings/switch-to-application-4: "@as []"
+  /org/gnome/shell/keybindings/switch-to-application-5: "@as []"
+  /org/gnome/shell/keybindings/switch-to-application-6: "@as []"
+  /org/gnome/shell/keybindings/switch-to-application-7: "@as []"
+  /org/gnome/shell/keybindings/switch-to-application-8: "@as []"
+  /org/gnome/shell/keybindings/switch-to-application-9: "@as []"
+
+  # Window manager keybindings
+  /org/gnome/desktop/wm/keybindings/switch-to-workspace-1: "['<Super>1']"
+  /org/gnome/desktop/wm/keybindings/switch-to-workspace-2: "['<Super>2']"
+  /org/gnome/desktop/wm/keybindings/switch-to-workspace-3: "['<Super>3']"
+  /org/gnome/desktop/wm/keybindings/switch-to-workspace-4: "['<Super>4']"
+  /org/gnome/desktop/wm/keybindings/switch-to-workspace-5: "['<Super>5']"
+  /org/gnome/desktop/wm/keybindings/switch-to-workspace-6: "['<Super>6']"
+  /org/gnome/desktop/wm/keybindings/switch-to-workspace-7: "['<Super>7']"
+  /org/gnome/desktop/wm/keybindings/switch-to-workspace-8: "['<Super>8']"
+  /org/gnome/desktop/wm/keybindings/switch-to-workspace-9: "['<Super>9']"
+  /org/gnome/desktop/wm/keybindings/move-to-workspace-1: "['<Shift><Super>1']"
+  /org/gnome/desktop/wm/keybindings/move-to-workspace-2: "['<Shift><Super>2']"
+  /org/gnome/desktop/wm/keybindings/move-to-workspace-3: "['<Shift><Super>3']"
+  /org/gnome/desktop/wm/keybindings/move-to-workspace-4: "['<Shift><Super>4']"
+  /org/gnome/desktop/wm/keybindings/move-to-workspace-5: "['<Shift><Super>5']"
+  /org/gnome/desktop/wm/keybindings/move-to-workspace-6: "['<Shift><Super>6']"
+  /org/gnome/desktop/wm/keybindings/move-to-workspace-7: "['<Shift><Super>7']"
+  /org/gnome/desktop/wm/keybindings/move-to-workspace-8: "['<Shift><Super>8']"
+  /org/gnome/desktop/wm/keybindings/move-to-workspace-9: "['<Shift><Super>9']"
+  /org/gnome/desktop/wm/keybindings/close: "['<Shift><Super>q']"
+  /org/gnome/desktop/wm/keybindings/move-to-center: "['<Super><Shift>c']"
+
+  # Background (picture-uri is set at runtime from the selected wallpaper)
+  /org/gnome/desktop/background/picture-opacity: "100"
+  /org/gnome/desktop/background/picture-options: "'zoom'"
+
+  # Notifications
+  /org/gnome/desktop/notifications/show-banners: "false"
+  /org/gnome/desktop/notifications/show-in-lock-screen: "false"
+
+  # Night light
+  /org/gnome/settings-daemon/plugins/color/night-light-enabled: "true"
+  /org/gnome/settings-daemon/plugins/color/night-light-schedule-from: "21.0"
+  /org/gnome/settings-daemon/plugins/color/night-light-schedule-to: "6.0"
+  /org/gnome/settings-daemon/plugins/color/night-light-temperature: "uint32 2500"
+
+  # File History & Trash
+  /org/gnome/desktop/privacy/remove-old-trash-files: "true"
+  /org/gnome/desktop/privacy/remove-old-temp-files: "true"
+  /org/gnome/desktop/privacy/old-files-age: "uint32 3"
+  /org/gnome/desktop/privacy/recent-files-max-age: "7"
+
+  # Nautilus & file chooser
+  /org/gnome/nautilus/preferences/default-folder-viewer: "'list-view'"
+  /org/gtk/settings/file-chooser/sort-directories-first: "true"
+  /org/gtk/gtk4/settings/file-chooser/sort-directories-first: "true"
+
+  # Gnome Shell
+  /org/gnome/shell/favorite-apps: >-
+    ['{{ desktop_environment_gnome_favorite_apps | join("', '") }}']
+  /org/gnome/shell/enabled-extensions: >-
+    ['{{ desktop_environment_gnome_enabled_extensions | join("', '") }}']
+
+  # Extensions
+  /org/gnome/shell/extensions/dash-to-dock/hot-keys: "false"
+  /org/gnome/shell/extensions/dash-to-dock/click-action: "'minimize'"
+  /org/gnome/shell/extensions/dash-to-dock/custom-theme-shrink: "true"
+  /org/gnome/shell/extensions/system-monitor/show-swap: "false"
+  /org/gnome/shell/extensions/tiling-assistant/tile-top-half: "['<Shift><Super>w']"
+  /org/gnome/shell/extensions/tiling-assistant/tile-bottom-half: "['<Shift><Super>s']"
+  /org/gnome/shell/extensions/tiling-assistant/tile-topleft-quarter: "['<Super>q']"
+  /org/gnome/shell/extensions/tiling-assistant/tile-topright-quarter: "['<Super>e']"
+  /org/gnome/shell/extensions/tiling-assistant/tile-bottomleft-quarter: "['<Super>z']"
+  /org/gnome/shell/extensions/tiling-assistant/tile-bottomright-quarter: "['<Super>c']"
+  /org/gnome/shell/extensions/tiling-assistant/focus-hint: "2"
+  /org/gnome/shell/extensions/tiling-assistant/single-screen-gap: "4"
+  /org/gnome/shell/extensions/tiling-assistant/window-gap: "4"
+  /org/gnome/shell/extensions/tiling-assistant/maximize-with-gap: "true"
+
+  # Custom keybindings
+  /org/gnome/settings-daemon/plugins/media-keys/custom-keybindings: >-
+    ['/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/']
+  /org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/name: "'Terminal'"
+  /org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/command: "'{{ desktop_environment_default_terminal_emulator }}'"
+  /org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/binding: "'<Super>Return'"
+
+### Power settings depending on the destination device
+desktop_environment_dconf_power_settings: >-
+  {{
+    {
+      '/org/gnome/settings-daemon/plugins/power/sleep-inactive-ac-type': "'suspend'",
+      '/org/gnome/settings-daemon/plugins/power/sleep-inactive-ac-timeout': '600',
+      '/org/gnome/settings-daemon/plugins/power/sleep-inactive-battery-type': "'suspend'",
+      '/org/gnome/settings-daemon/plugins/power/sleep-inactive-battery-timeout': '300',
+    } if desktop_environment_destination_device == 'laptop' else {
+      '/org/gnome/settings-daemon/plugins/power/sleep-inactive-ac-type': "'nothing'",
+      '/org/gnome/settings-daemon/plugins/power/sleep-inactive-ac-timeout': '0',
+    }
+  }}
+
+### Touchpad settings applied on laptops only
+desktop_environment_dconf_touchpad_settings: >-
+  {{
+    {
+      '/org/gnome/desktop/peripherals/touchpad/tap-to-click': 'true',
+      '/org/gnome/desktop/peripherals/touchpad/natural-scroll': 'true',
+      '/org/gnome/desktop/peripherals/touchpad/two-finger-scrolling-enabled': 'true',
+    } if desktop_environment_destination_device == 'laptop' else {}
+  }}
+
+### Default applications (~/.config/mimeapps.list)
+desktop_environment_default_applications:
+  application/pdf: org.gnome.Evince.desktop
+  image/bmp: org.gnome.eog.desktop
+  image/gif: org.gnome.eog.desktop
+  image/jpeg: org.gnome.eog.desktop
+  image/png: org.gnome.eog.desktop
+  image/svg+xml: org.gnome.eog.desktop
+  image/webp: org.gnome.eog.desktop
+  text/html: firefox-esr.desktop
+  text/plain: org.gnome.TextEditor.desktop
+  video/mp4: io.github.celluloid_player.Celluloid.desktop
+  video/mpeg: io.github.celluloid_player.Celluloid.desktop
+  video/quicktime: io.github.celluloid_player.Celluloid.desktop
+  video/webm: io.github.celluloid_player.Celluloid.desktop
+  video/x-matroska: io.github.celluloid_player.Celluloid.desktop
+  video/x-msvideo: io.github.celluloid_player.Celluloid.desktop
+  x-scheme-handler/http: firefox-esr.desktop
+  x-scheme-handler/https: firefox-esr.desktop
+  x-scheme-handler/mailto: thunderbird.desktop
+
+# Office
+desktop_environment_office: "{{ OFFICE | default(false) | bool }}"
+
+### Packages
+desktop_environment_spelling_packages:
+  - aspell-en
+  - aspell-ru
+  - hunspell-en-us
+  - hunspell-ru
+
+desktop_environment_office_packages:
+  - libreoffice-gtk3
+  - libreoffice-calc
+  - libreoffice-writer
+  - libreoffice-style-colibre
+
+# Printing
+desktop_environment_printing: "{{ PRINTING | default(false) | bool }}"
+
+### Packages
+desktop_environment_printing_packages:
+  - cups
+  - cups-pk-helper
+
+# Hypervisor
+desktop_environment_hypervisor: "{{ HYPERVISOR | default(false) | bool }}"
+
+### Packages
+desktop_environment_hypervisor_packages:
+  - virt-manager
+  - qemu-kvm
+  - bridge-utils
+
+### User groups
+desktop_environment_hypervisor_user_groups:
+  - libvirt
+  - libvirt-qemu
+
+# Networking
+desktop_environment_reconfigure_network: "{{ RECONFIGURE_NETWORK | default(false) | bool }}"
+
+# Blocking deb packages (first part of name)
+desktop_environment_preferred_deb_blocking_packages:
+  - apache2
+  - gnome-classic
+  - gnome-session-xsession
+  - gnome-shell-extension-prefs
+  - im-config
+  - malcontent
+  - yelp
+  - xserver-xorg
+  - xserver-xephyr
+
+# Laptop
+desktop_environment_destination_device: "{{ DESTINATION_DEVICE | default('laptop') }}"
+
+desktop_environment_for_laptop_packages:
+  - brightness-udev
+  - iio-sensor-proxy
+  - powertop
+  - tlp
+
+desktop_environment_tlp_config_file: 01-mytlp.conf
+
+# Virtual machine
+desktop_environment_for_vm_packages:
+  - spice-vdagent
+  - qemu-guest-agent

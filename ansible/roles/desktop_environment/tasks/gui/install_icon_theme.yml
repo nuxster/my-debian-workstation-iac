@@ -1,0 +1,56 @@
+---
+- name: Install icon themes | Set paths for {{ desktop_environment_icon_theme_item.name }}
+  ansible.builtin.set_fact:
+    _desktop_environment_icon_theme_tmp_dir: "{{ [desktop_environment_tmp_dir, desktop_environment_icon_theme_item.name] | path_join }}"
+    _desktop_environment_icon_theme_destination: >-
+      {{
+        desktop_environment_icon_theme_item.destination
+        | default([desktop_environment_user_home, '.local/share/icons', desktop_environment_icon_theme_item.name] | path_join)
+      }}
+    _desktop_environment_icon_theme_exclude_options: >-
+      {{
+        desktop_environment_icon_theme_item.exclude
+        | default([])
+        | map('regex_replace', '^(.*)$', '--exclude=\\1')
+        | list
+      }}
+
+- name: Install icon themes | Clone {{ desktop_environment_icon_theme_item.name }}
+  ansible.builtin.git:
+    repo: "{{ desktop_environment_icon_theme_item.repo_url }}"
+    dest: "{{ _desktop_environment_icon_theme_tmp_dir }}"
+    version: "{{ desktop_environment_icon_theme_item.version | default('HEAD') }}"
+    update: true
+    force: false
+
+- name: Install icon themes | Create destination directory for {{ desktop_environment_icon_theme_item.name }}
+  ansible.builtin.file:
+    path: "{{ _desktop_environment_icon_theme_destination }}"
+    state: directory
+    owner: "{{ USERNAME }}"
+    group: "{{ USERNAME }}"
+    mode: "0755"
+
+- name: Install icon themes | Synchronize {{ desktop_environment_icon_theme_item.name }}
+  ansible.posix.synchronize:
+    src: "{{ _desktop_environment_icon_theme_tmp_dir }}/"
+    dest: "{{ _desktop_environment_icon_theme_destination }}/"
+    delete: true
+    rsync_opts: "{{ _desktop_environment_icon_theme_exclude_options + ['--delete-excluded'] }}"
+  register: _desktop_environment_icon_theme_sync
+
+- name: Install icon themes | Update GTK icon cache for {{ desktop_environment_icon_theme_item.name }}
+  ansible.builtin.command:
+    cmd: gtk-update-icon-cache -f -t "{{ _desktop_environment_icon_theme_destination }}"
+  changed_when: true
+  when:
+    - _desktop_environment_icon_theme_sync.changed
+
+- name: Install icon themes | Force desktop menu update
+  ansible.builtin.command:
+    cmd: xdg-desktop-menu forceupdate
+  register: _desktop_environment_icon_theme_xdg_update
+  changed_when: false
+  failed_when: _desktop_environment_icon_theme_xdg_update.rc not in [0]
+  when:
+    - _desktop_environment_icon_theme_sync.changed

@@ -1,0 +1,39 @@
+---
+- name: Configure APT
+  become: true
+  block:
+    - name: Set APT options
+      ansible.builtin.lineinfile:
+        dest: "{{ common_apt_config_file }}"
+        regexp: "{{ item.regexp }}"
+        line: "{{ item.line }}"
+        create: true
+      loop: "{{ common_apt_options }}"
+      loop_control:
+        label: "{{ item.line }}"
+
+    - name: Set preferences for blocking deb
+      ansible.builtin.template:
+        src: etc/apt/preferences.d/deb_block_preferences.tmpl
+        dest: "/etc/apt/preferences.d/no-{{ item }}"
+        owner: root
+        group: root
+        mode: "0644"
+      loop: "{{ common_preferred_deb_blocking_packages }}"
+      when:
+        - common_preferred_deb_blocking_packages | default([]) | length > 0
+
+    - name: Set APT mirror
+      ansible.builtin.template:
+        src: etc/apt/sources_list.tmpl
+        dest: /etc/apt/sources.list
+        owner: root
+        group: root
+        mode: "0644"
+
+    - name: Upgrade all packages
+      ansible.builtin.apt:
+        upgrade: dist
+        update_cache: true
+      when:
+        - common_upgrade_packages

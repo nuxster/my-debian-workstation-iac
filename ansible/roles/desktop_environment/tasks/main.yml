@@ -1,0 +1,34 @@
+---
+- name: Configure and install software
+  ansible.builtin.include_tasks:
+    file: software/main.yml
+
+- name: Install and configure GUI
+  ansible.builtin.include_tasks:
+    file: gui/main.yml
+
+- name: Configure hardware
+  ansible.builtin.include_tasks:
+    file: hardware/main.yml
+
+- name: Install and configure office
+  ansible.builtin.include_tasks:
+    file: office/main.yml
+  tags:
+    - office
+
+- name: Install and configure printing
+  ansible.builtin.include_tasks:
+    file: printing/main.yml
+  tags:
+    - printing
+
+- name: Install and configure hypervisor
+  ansible.builtin.include_tasks:
+    file: hypervisor/main.yml
+  tags:
+    - hypervisor
+
+- name: Configure networking
+  ansible.builtin.include_tasks:
+    file: networking/main.yml

@@ -1,0 +1,40 @@
+---
+- name: Configure system locale
+  become: true
+  block:
+    - name: Configure system locale | Install locales package
+      ansible.builtin.apt:
+        name: locales
+        state: present
+
+    - name: Configure system locale | Generate locale
+      community.general.locale_gen:
+        name: "{{ localization_locale }}"
+        state: present
+
+    - name: Configure system locale | Set default system locale
+      ansible.builtin.lineinfile:
+        path: /etc/default/locale
+        regexp: "^LANG="
+        line: "LANG={{ localization_locale }}"
+        create: true
+        owner: root
+        group: root
+        mode: "0644"
+
+- name: Configure Gnome input sources
+  become: true
+  become_user: "{{ USERNAME }}"
+  community.general.dconf:
+    key: "{{ item.key }}"
+    value: "{{ item.value }}"
+    state: present
+  loop: "{{ _localization_dconf_settings | dict2items }}"
+  loop_control:
+    label: "{{ item.key }}"
+  vars:
+    _localization_dconf_settings:
+      /org/gnome/desktop/input-sources/sources: >-
+        [{% for layout in localization_input_sources %}('xkb', '{{ layout }}'){{ ", " if not loop.last }}{% endfor %}]
+      /org/gnome/desktop/input-sources/xkb-options: >-
+        ['{{ localization_input_xkb_options | join("', '") }}']

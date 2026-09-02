@@ -1,0 +1,5 @@
+deb https://{{ common_apt_source_mirror_url }}/debian/ {{ common_debian_release }} main contrib non-free non-free-firmware
+{% if common_debian_release not in ['unstable', 'sid'] %}
+deb https://{{ common_apt_source_mirror_url }}/debian/ {{ common_debian_release }}-updates main contrib non-free non-free-firmware
+deb https://{{ common_apt_source_security_mirror_url }}/debian-security {{ common_debian_release }}-security main contrib non-free non-free-firmware
+{% endif %}

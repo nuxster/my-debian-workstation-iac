@@ -1,0 +1,6 @@
+---
+- name: Install printing packages
+  ansible.builtin.include_tasks:
+    file: install_packages.yml
+  tags:
+    - printing

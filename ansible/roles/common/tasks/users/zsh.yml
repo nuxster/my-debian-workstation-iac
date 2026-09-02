@@ -1,0 +1,27 @@
+---
+- name: Install zsh packages
+  become: true
+  ansible.builtin.apt:
+    name: "{{ common_shell_package_name }}"
+    state: present
+    # install_recommends: false
+
+- name: Clone oh-my-zsh repository
+  ansible.builtin.git:
+    repo: "https://github.com/ohmyzsh/ohmyzsh.git"
+    dest: "{{ common_oh_my_zsh_tmp }}"
+
+- name: Install zsh-autosuggestions plugin
+  ansible.builtin.git:
+    repo: "https://github.com/zsh-users/zsh-autosuggestions.git"
+    dest: "{{ [common_oh_my_zsh_tmp, 'custom/plugins/zsh-autosuggestions'] | path_join }}"
+
+- name: Install zsh-syntax-highlighting plugin
+  ansible.builtin.git:
+    repo: "https://github.com/zsh-users/zsh-syntax-highlighting.git"
+    dest: "{{ [common_oh_my_zsh_tmp, 'custom/plugins/zsh-syntax-highlighting'] | path_join }}"
+
+- name: Copy my zsh theme to oh-my-zsh config directory
+  ansible.builtin.copy:
+    src: "{{ common_my_zsh_theme_file }}"
+    dest: "{{ [common_oh_my_zsh_tmp, 'themes', common_my_zsh_theme_file] | path_join }}"

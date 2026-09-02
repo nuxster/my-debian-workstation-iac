@@ -1,0 +1,14 @@
+---
+- name: Install printing
+  become: true
+  when:
+    - desktop_environment_printing or 'printing' in ansible_run_tags
+  block:
+    - name: Install printing | Install printing packages
+      ansible.builtin.apt:
+        name: "{{ desktop_environment_printing_packages }}"
+        state: present
+
+    - name: Install printing | Deleting downloaded packages that are no longer required
+      ansible.builtin.apt:
+        clean: true

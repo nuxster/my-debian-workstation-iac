@@ -1,0 +1,96 @@
+---
+- name: Preflight | Check supported distribution
+  ansible.builtin.assert:
+    that:
+      - ansible_facts["distribution"] == "Debian"
+    fail_msg: "This playbook supports Debian only. Current OS: {{ ansible_facts['distribution'] }}."
+    success_msg: "Debian detected."
+
+- name: Preflight | Check supported Debian major version
+  ansible.builtin.assert:
+    that:
+      - ansible_facts["distribution_major_version"] | int >= 13
+    fail_msg: "Unsupported Debian version: {{ ansible_facts['distribution_version'] }}. Debian 13+ is expected."
+
+- name: Preflight | Check USERNAME is defined
+  ansible.builtin.assert:
+    that:
+      - USERNAME is defined
+      - USERNAME | length > 0
+    fail_msg: "USERNAME must be defined in ansible/group_vars/all.yml."
+
+- name: Preflight | Check target user exists
+  ansible.builtin.getent:
+    database: passwd
+    key: "{{ USERNAME }}"
+
+- name: Preflight | Check CPU variable
+  ansible.builtin.assert:
+    that:
+      - CPU is defined
+      - CPU in ["intel", "amd"]
+    fail_msg: "CPU must be either 'intel' or 'amd'. Current value: {{ CPU | default('undefined') }}."
+
+- name: Preflight | Check DESTINATION_DEVICE
+  ansible.builtin.assert:
+    that:
+      - DESTINATION_DEVICE is defined
+      - DESTINATION_DEVICE in ["desktop", "laptop", "vm"]
+    fail_msg: "DESTINATION_DEVICE must be either 'desktop', 'laptop' or 'vm'. Current value: {{ DESTINATION_DEVICE | default('undefined') }}."
+
+- name: Preflight | Check boolean flags
+  ansible.builtin.assert:
+    that:
+      - vars[item] is defined
+      - vars[item] is boolean
+    fail_msg: "{{ item }} must be defined as a boolean in ansible/group_vars/all.yml."
+  loop:
+    - SSD_DEVICES
+    - OFFICE
+    - PRINTING
+    - HYPERVISOR
+    - UPGRADE_PACKAGES
+    - NTP_DAEMON
+    - RECONFIGURE_NETWORK
+    - GDM_AUTOLOGIN
+
+- name: Preflight | Check LOCALE
+  ansible.builtin.assert:
+    that:
+      - LOCALE is defined
+      - LOCALE is string
+      - LOCALE | length > 0
+    fail_msg: "LOCALE must be defined as a string in ansible/group_vars/all.yml, e.g. en_US.UTF-8."
+
+- name: Preflight | Check INPUT_SOURCES
+  ansible.builtin.assert:
+    that:
+      - INPUT_SOURCES is defined
+      - INPUT_SOURCES is sequence
+      - INPUT_SOURCES is not string
+      - INPUT_SOURCES | length > 0
+    fail_msg: "INPUT_SOURCES must be defined as a non-empty list of XKB layouts in ansible/group_vars/all.yml, e.g. [us, ru]."
+
+- name: Preflight | Warn if playbook is running as root
+  ansible.builtin.debug:
+    msg: >
+      You are running Ansible as root. This collection expects a regular user
+      and uses become for privileged tasks.
+  when:
+    - ansible_facts["user_uid"] == 0
+
+- name: Preflight | Show effective configuration
+  ansible.builtin.debug:
+    msg:
+      username: "{{ USERNAME }}"
+      user_home: "{{ USER_HOME | default('/home/' ~ USERNAME) }}"
+      cpu: "{{ CPU }}"
+      destination_device: "{{ DESTINATION_DEVICE }}"
+      office: "{{ OFFICE }}"
+      printing: "{{ PRINTING }}"
+      hypervisor: "{{ HYPERVISOR }}"
+      reconfigure_network: "{{ RECONFIGURE_NETWORK }}"
+      gdm_autologin: "{{ GDM_AUTOLOGIN }}"
+      locale: "{{ LOCALE }}"
+      input_sources: "{{ INPUT_SOURCES }}"
+      debian_release: "{{ DEBIAN_RELEASE | default(ansible_facts['distribution_release']) }}"

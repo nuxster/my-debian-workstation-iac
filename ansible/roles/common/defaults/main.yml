@@ -1,0 +1,122 @@
+---
+# General
+common_tmp_dir: "{{ TMP_DIRECTORY | default('/tmp') }}"
+common_user_home: "{{ USER_HOME | default('/home/' ~ USERNAME) }}"
+common_timezone: "{{ TIMEZONE | default('Europe/Moscow') }}"
+common_ntp_daemon: "{{ NTP_DAEMON | default(true) | bool }}"
+
+# Users
+common_user_groups:
+  - users
+  - netdev
+  - plugdev
+  - dialout
+  - video
+  - audio
+  - sudo
+  - games
+
+# config_ssh is an example of parameters for the user (ssh -F ~/.ssh/config_ssh)
+common_ssh_configuration_files:
+  - config_ssh
+  - config
+
+common_ssh_config_parameters:
+  - "IdentitiesOnly=yes"
+  - "RemoteCommand TERM=xterm $SHELL"
+  - "RequestTTY yes"
+
+# Boot
+
+### Plymouth
+common_plymouth_theme:
+  debian-slider: https://github.com/nuxster/debian-slider.git
+common_plymouth_packages:
+  - plymouth
+  - plymouth-themes
+
+# APT
+
+### Debian release used in sources.list: a codename (trixie), stable or unstable
+### (defaults to the codename of the installed release)
+common_debian_release: "{{ DEBIAN_RELEASE | default(ansible_facts['distribution_release']) }}"
+
+### Mirrors
+common_apt_source_mirror_url: "{{ APT_SOURCE_MIRROR_URL | default('deb.debian.org') }}"
+common_apt_source_security_mirror_url: "{{ APT_SOURCE_SECURITY_MIRROR_URL | default('security.debian.org') }}"
+
+# Packages
+common_upgrade_packages: "{{ UPGRADE_PACKAGES | default(true) }}"
+
+### Kernel & kernel headers
+common_kernel_headers_packages:
+  - linux-headers-amd64
+  - build-essential
+  - dkms
+
+### Drivers
+common_amd_microcode: amd64-microcode
+common_intel_microcode: intel-microcode
+common_microcode_packages: "{{ common_intel_microcode if CPU == 'intel' else common_amd_microcode }}"
+common_firmware_packages:
+  - firmware-linux
+  - firmware-linux-free
+  - firmware-linux-nonfree
+  - firmware-misc-nonfree
+  - firmware-iwlwifi
+
+### Additional software
+common_archivators_packages:
+  - zip
+  - unzip
+  - unrar
+  - p7zip-full
+  - xz-utils
+
+common_filesystems_utils_packages:
+  - exfatprogs
+  - dosfstools
+  - ntfs-3g
+  - sshfs
+
+common_removable_packages_of_text_editors:
+  - vim-tiny
+  - vim-common
+
+common_default_text_editor_package: "{{ DEFAULT_TEXT_EDITOR_PACKAGE | default('nano') }}"
+
+common_certificates_gpg_packages:
+  - ca-certificates
+  - openssl
+  - gnupg2
+
+common_networking_packages:
+  - wget
+  - curl
+  - lynx
+  - nmap
+  - tcpdump
+  - rsync
+  - netcat-openbsd
+  - wpasupplicant
+
+common_utility_packages:
+  - util-linux-extra
+
+common_user_software_packages:
+  - grc
+  - duf
+  - bpytop
+  - lsd
+  - ranger
+  - htop
+  - ffmpeg
+  - tree
+  - sudo
+
+# Blocking deb packages (first part of name)
+common_preferred_deb_blocking_packages:
+  - w3m
+
+# SSD devices
+common_ssd_devices: "{{ SSD_DEVICES | default(true) | bool }}"

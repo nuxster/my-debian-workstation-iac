@@ -1,0 +1,8 @@
+---
+- name: Configure GRUB
+  ansible.builtin.include_tasks:
+    file: grub.yml
+
+- name: Install and configure Plymouth
+  ansible.builtin.include_tasks:
+    file: plymouth.yml

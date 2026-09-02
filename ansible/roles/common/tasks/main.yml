@@ -1,0 +1,21 @@
+---
+- name: Configure and install software
+  ansible.builtin.include_tasks:
+    file: software/main.yml
+
+- name: Configure hardware
+  ansible.builtin.include_tasks:
+    file: hardware/main.yml
+
+- name: Configure boot process
+  ansible.builtin.include_tasks:
+    file: boot/main.yml
+
+- name: Configure users
+  ansible.builtin.include_tasks:
+    file: users/main.yml
+
+- name: Deleting downloaded packages that are no longer required
+  become: true
+  ansible.builtin.apt:
+    clean: true

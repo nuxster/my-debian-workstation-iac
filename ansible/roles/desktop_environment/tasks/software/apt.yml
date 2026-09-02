@@ -1,0 +1,14 @@
+---
+- name: Configure APT
+  become: true
+  block:
+    - name: Configure APT | Set preferences for blocking deb
+      ansible.builtin.template:
+        src: etc/apt/preferences.d/deb_block_preferences.tmpl
+        dest: "/etc/apt/preferences.d/no-{{ item }}"
+        owner: root
+        group: root
+        mode: "0644"
+      loop: "{{ desktop_environment_preferred_deb_blocking_packages }}"
+      when:
+        - desktop_environment_preferred_deb_blocking_packages | default([]) | length > 0

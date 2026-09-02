@@ -1,0 +1,12 @@
+---
+- name: Install desktop environment packages
+  ansible.builtin.include_tasks:
+    file: install_packages.yml
+
+- name: Install fonts
+  ansible.builtin.include_tasks:
+    file: install_fonts.yml
+
+- name: Configure user desktop environment
+  ansible.builtin.include_tasks:
+    file: configure_user_desktop_environment.yml

@@ -1,0 +1,14 @@
+---
+- name: Configure laptop | TLP changed configuration apply
+  become: true
+  listen: tlp start
+  ansible.builtin.command:
+    cmd: /usr/sbin/tlp start
+
+- name: Install fonts | Update font cache
+  become: true
+  become_user: "{{ USERNAME }}"
+  listen: update font cache
+  ansible.builtin.command:
+    cmd: fc-cache -f
+  changed_when: true

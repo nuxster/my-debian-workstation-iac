@@ -1,0 +1,12 @@
+---
+- name: Install and pre-configure zsh
+  ansible.builtin.include_tasks:
+    file: zsh.yml
+
+- name: Configure regular user
+  ansible.builtin.include_tasks:
+    file: regular_user.yml
+
+- name: Configure super user
+  ansible.builtin.include_tasks:
+    file: super_user.yml

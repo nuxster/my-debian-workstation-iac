@@ -1,0 +1,11 @@
+---
+- name: Configure groups and users for hypervisor
+  become: true
+  when:
+    - desktop_environment_hypervisor or 'hypervisor' in ansible_run_tags
+  block:
+    - name: Configure groups and users for hypervisor | Append user to hypervisor groups
+      ansible.builtin.user:
+        name: "{{ USERNAME }}"
+        groups: "{{ desktop_environment_hypervisor_user_groups }}"
+        append: true

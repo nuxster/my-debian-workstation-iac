@@ -1,0 +1,16 @@
+---
+- name: Configure APT
+  ansible.builtin.include_tasks:
+    file: apt.yml
+
+- name: Uninstall packages
+  ansible.builtin.include_tasks:
+    file: uninstall.yml
+
+- name: Install packages
+  ansible.builtin.include_tasks:
+    file: install_packages.yml
+
+- name: Configure timezone and time synchronization
+  ansible.builtin.include_tasks:
+    file: timezone.yml

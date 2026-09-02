@@ -1,0 +1,31 @@
+---
+# General
+
+### GRUB
+common_grub_cmdline_linux_default: "{{ 'quiet splash acpi_backlight=native' if DESTINATION_DEVICE == 'laptop' else 'quiet splash' }}"
+common_grub_default_config: /etc/default/grub
+
+# Shell
+common_shell_package_name: zsh
+common_shell_config: .zshrc
+common_oh_my_zsh_tmp: /tmp/.oh-my-zsh
+common_my_zsh_theme_file: jispwoso-nuxster.zsh-theme
+
+# Sysctl
+
+### SDD
+common_ssd_sysctl:
+  vm.vfs_cache_pressure: 50
+  vm.swappiness: 10
+  vm.dirty_ratio: 10
+  vm.dirty_background_ratio: 5
+
+# APT
+common_apt_config_file: /etc/apt/apt.conf
+
+### APT Options
+common_apt_options:
+  - regexp: "^APT::Install-Suggests"
+    line: 'APT::Install-Suggests "false";'
+  - regexp: "^APT::Default-Release"
+    line: 'APT::Default-Release "/^{{ common_debian_release }}(|-security|-updates)$/";'

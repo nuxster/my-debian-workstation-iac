@@ -1,0 +1,26 @@
+---
+- name: Configure laptop
+  when:
+    - desktop_environment_destination_device == 'laptop'
+  become: true
+  block:
+    - name: Configure laptop | Uninstall power-profiles-daemon conflicting with TLP
+      ansible.builtin.apt:
+        name: power-profiles-daemon
+        state: absent
+        purge: true
+
+    - name: Configure laptop | Install packages for laptop
+      ansible.builtin.apt:
+        name: "{{ desktop_environment_for_laptop_packages }}"
+        state: present
+
+    - name: Configure laptop | Configure TLP
+      ansible.builtin.copy:
+        src: "etc/tlp.d/{{ desktop_environment_tlp_config_file }}"
+        dest: "/etc/tlp.d/{{ desktop_environment_tlp_config_file }}"
+        owner: root
+        group: root
+        mode: "0644"
+      notify:
+        - tlp start

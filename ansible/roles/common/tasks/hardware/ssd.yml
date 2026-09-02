@@ -1,0 +1,20 @@
+---
+- name: Configure system for SSD storage
+  when:
+    - common_ssd_devices
+  become: true
+  block:
+    - name: Configure system for SSD storage | Enable fstrim
+      ansible.builtin.systemd_service:
+        name: fstrim.timer
+        state: started
+        enabled: true
+
+    - name: Configure system for SSD storage | Set sysctl parameters for SSD
+      ansible.posix.sysctl:
+        name: "{{ item.key }}"
+        value: "{{ item.value }}"
+        sysctl_set: true
+        state: present
+        reload: true
+      loop: "{{ lookup('ansible.builtin.dict', common_ssd_sysctl) }}"

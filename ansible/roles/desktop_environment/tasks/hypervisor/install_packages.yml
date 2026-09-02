@@ -1,0 +1,14 @@
+---
+- name: Install hypervisor
+  become: true
+  when:
+    - desktop_environment_hypervisor or 'hypervisor' in ansible_run_tags
+  block:
+    - name: Install hypervisor | Install hypervisor packages
+      ansible.builtin.apt:
+        name: "{{ desktop_environment_hypervisor_packages }}"
+        state: present
+
+    - name: Install hypervisor | Deleting downloaded packages that are no longer required
+      ansible.builtin.apt:
+        clean: true

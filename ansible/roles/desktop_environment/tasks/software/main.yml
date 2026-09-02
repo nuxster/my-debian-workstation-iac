@@ -1,0 +1,4 @@
+---
+- name: Configure APT
+  ansible.builtin.include_tasks:
+    file: apt.yml

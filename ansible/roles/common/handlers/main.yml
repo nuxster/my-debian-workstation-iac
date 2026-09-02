@@ -1,0 +1,16 @@
+---
+- name: Configure GRUB | Update GRUB
+  become: true
+  listen: update grub
+  ansible.builtin.command:
+    cmd: update-grub
+
+- name: Install and configure Plymouth | Make plymouth theme
+  become: true
+  listen: make plymouth theme
+  ansible.builtin.shell:
+    cmd: |
+      cd {{ [common_tmp_dir, item.key] | path_join }}
+      make apply-now
+  loop:
+    - "{{ common_plymouth_theme | dict2items | first }}"

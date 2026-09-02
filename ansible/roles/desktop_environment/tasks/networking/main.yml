@@ -1,0 +1,4 @@
+---
+- name: Rewrite /etc/network/interfaces
+  ansible.builtin.include_tasks:
+    file: rewrite_interfaces.yml
