@@ -57,6 +57,13 @@ desktop_environment_icon_themes:
   #     - ".github"
   #     - "*.md"
 
+#### Cursor themes
+# Variants shipped by bibata-cursor-theme: Bibata-{Modern,Original}-{Classic,Ice,Amber}
+desktop_environment_cursor_theme: Bibata-Modern-Classic
+
+desktop_environment_cursor_theme_packages:
+  - bibata-cursor-theme
+
 ### Packages
 desktop_environment_font_packages:
   - fontconfig
@@ -181,6 +188,7 @@ desktop_environment_dconf_settings:
   /org/gnome/desktop/interface/color-scheme: "'prefer-dark'"
   /org/gnome/desktop/interface/gtk-theme: "'Adwaita-dark'"
   /org/gnome/desktop/interface/icon-theme: "'{{ desktop_environment_icon_theme }}'"
+  /org/gnome/desktop/interface/cursor-theme: "'{{ desktop_environment_cursor_theme }}'"
   /org/gnome/desktop/interface/clock-format: "'24h'"
   /org/gnome/desktop/interface/accent-color: "'slate'"
 

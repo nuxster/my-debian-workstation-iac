@@ -70,6 +70,30 @@
     loop_var: desktop_environment_icon_theme_item
     label: "{{ desktop_environment_icon_theme_item.name }}"
 
+- name: Set the default cursor theme
+  become: true
+  block:
+    - name: Set the default cursor theme | Check the cursor theme is installed
+      ansible.builtin.stat:
+        path: "{{ _desktop_environment_cursor_theme_file }}"
+      register: _desktop_environment_cursor_theme_stat
+
+    - name: Set the default cursor theme | Check the cursor theme exists
+      ansible.builtin.assert:
+        that:
+          - _desktop_environment_cursor_theme_stat.stat.exists
+        fail_msg: >-
+          Cursor theme '{{ desktop_environment_cursor_theme }}' is not installed
+          ({{ _desktop_environment_cursor_theme_file }} not found).
+
+    # System-wide default (X11 / Xwayland applications and the GDM greeter)
+    - name: Set the default cursor theme | Set the x-cursor-theme alternative
+      community.general.alternatives:
+        name: x-cursor-theme
+        path: "{{ _desktop_environment_cursor_theme_file }}"
+  vars:
+    _desktop_environment_cursor_theme_file: "{{ ['/usr/share/icons', desktop_environment_cursor_theme, 'cursor.theme'] | path_join }}"
+
 - name: Configure Gnome settings
   vars:
     _wallpaper_directory: "{{ [desktop_environment_user_home, desktop_environment_gnome_wallpaper_directory] | path_join }}"
