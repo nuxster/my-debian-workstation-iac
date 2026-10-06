@@ -159,6 +159,10 @@ desktop_environment_multimedia_utility_packages:
   - celluloid
   - cmus
 
+### GPaste clipboard manager (daemon only, no Gnome Shell indicator)
+desktop_environment_clipboard_manager_packages:
+  - gpaste-2
+
 ### Gnome Shell favorite apps (dock), extended by office/hypervisor flags
 desktop_environment_gnome_favorite_apps: >-
   {{
@@ -276,6 +280,29 @@ desktop_environment_dconf_settings:
   /org/gnome/shell/extensions/tiling-assistant/single-screen-gap: "4"
   /org/gnome/shell/extensions/tiling-assistant/window-gap: "4"
   /org/gnome/shell/extensions/tiling-assistant/maximize-with-gap: "true"
+
+  # GPaste: a single clipboard, nothing persisted, no history UI.
+  # PRIMARY (mouse selection) and CLIPBOARD (Ctrl+C) are kept in sync, so
+  # Ctrl+V and middle-click paste the same text. History is not saved to disk
+  # and is capped at the schema minimum (5 items, 5 MB); without the Shell
+  # extension and hotkeys nothing exposes it, so only the last copy matters.
+  /org/gnome/GPaste/synchronize-clipboards: "true"
+  /org/gnome/GPaste/primary-to-history: "true"
+  /org/gnome/GPaste/save-history: "false"
+  /org/gnome/GPaste/max-history-size: "uint64 5"
+  /org/gnome/GPaste/max-memory-usage: "uint64 5"
+  /org/gnome/GPaste/images-support: "false"
+  /org/gnome/GPaste/trim-items: "false"
+  /org/gnome/GPaste/track-extension-state: "false"
+  # Hotkeys are disabled (empty string): show-history needs the Shell
+  # extension, the others expose or modify the history
+  /org/gnome/GPaste/show-history: "''"
+  /org/gnome/GPaste/launch-ui: "''"
+  /org/gnome/GPaste/pop: "''"
+  /org/gnome/GPaste/make-password: "''"
+  /org/gnome/GPaste/upload: "''"
+  /org/gnome/GPaste/sync-clipboard-to-primary: "''"
+  /org/gnome/GPaste/sync-primary-to-clipboard: "''"
 
   # Custom keybindings
   /org/gnome/settings-daemon/plugins/media-keys/custom-keybindings: >-

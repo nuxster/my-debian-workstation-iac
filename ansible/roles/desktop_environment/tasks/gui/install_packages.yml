@@ -23,6 +23,7 @@
           - "{{ desktop_environment_nautilus_additional_packages }}"
           - "{{ desktop_environment_network_utility_packages }}"
           - "{{ desktop_environment_multimedia_utility_packages }}"
+          - "{{ desktop_environment_clipboard_manager_packages }}"
           - "{{ desktop_environment_icon_theme_packages }}"
           - "{{ desktop_environment_cursor_theme_packages }}"
 
