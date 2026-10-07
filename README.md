@@ -10,6 +10,26 @@
 1. To install use the latest build of Debian stable (now Debian 13) [link](https://cdimage.debian.org/cdimage/release/current/amd64/iso-cd/);
 2. Perform a minimal installation, uncheck all components;
 
+### Automated installation (preseed)
+`preseed.cfg` answers every installer question except the LUKS passphrase: base system only,
+`en_US.UTF-8`, US mirror (`deb.debian.org`), the whole disk with LVM inside LUKS, no NTP,
+no root login (the user gets `sudo`), GRUB on the boot disk, no popularity-contest.
+
+1. Replace the placeholders in `preseed.cfg`: `USERNAME`, `FULL NAME`, `PASSWORD HASH`
+   (generate the hash with `openssl passwd -6`), `CHANGEME`. In addition,
+  you should specify the correct name of the disk where the system will be installed,
+  the hostname and domain, as well as other necessary parameters.
+2. Serve the file over HTTP from another machine in the same network:
+   ```shell
+   python3 -m http.server 8000
+   ```
+3. Boot the installer, choose `Advanced options` → `Automated install` and enter the file
+   location when asked: `http://<host>:8000/preseed.cfg`;
+4. On a Wi-Fi-only machine the network must be configured before the file can be fetched:
+   press `e` on the `Automated install` entry and append to the `linux` line
+   `netcfg/wireless_essid=<ssid> netcfg/wireless_security_type=wpa netcfg/wireless_wpa=<passphrase>`,
+   or uncomment the wireless block in `preseed.cfg` if the file is available locally.
+
 # Prepare 
 ```shell
 sudo apt update
