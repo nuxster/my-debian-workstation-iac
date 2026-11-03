@@ -111,6 +111,7 @@ desktop_environment_gnome_shell_extension_packages:
   - gnome-shell-extension-appindicator
   - gnome-shell-extension-caffeine
   - gnome-shell-extension-dashtodock
+  - gnome-shell-extension-desktop-icons-ng
   - gnome-shell-extensions-extra
 
 # power-profiles-daemon conflicts with tlp, which is used on laptops
@@ -185,6 +186,7 @@ desktop_environment_gnome_enabled_extensions:
   - ubuntu-appindicators@ubuntu.com
   - dash-to-dock@micxgx.gmail.com
   - system-monitor@gnome-shell-extensions.gcampax.github.com
+  - ding@rastersoft.com
 
 ### Gnome settings applied with dconf (values in GVariant text format)
 desktop_environment_dconf_settings:
@@ -254,10 +256,16 @@ desktop_environment_dconf_settings:
   /org/gnome/desktop/privacy/old-files-age: "uint32 3"
   /org/gnome/desktop/privacy/recent-files-max-age: "7"
 
-  # Nautilus & file chooser
+  # Nautilus & file chooser (click-policy, show-hidden, show-delete-permanently
+  # and show-image-thumbnails are shared with the Desktop Icons NG extension)
   /org/gnome/nautilus/preferences/default-folder-viewer: "'list-view'"
+  /org/gnome/nautilus/preferences/click-policy: "'double'"
+  /org/gnome/nautilus/preferences/show-delete-permanently: "true"
+  /org/gnome/nautilus/preferences/show-image-thumbnails: "'local-only'"
   /org/gtk/settings/file-chooser/sort-directories-first: "true"
+  /org/gtk/settings/file-chooser/show-hidden: "false"
   /org/gtk/gtk4/settings/file-chooser/sort-directories-first: "true"
+  /org/gtk/gtk4/settings/file-chooser/show-hidden: "false"
 
   # Gnome Shell
   /org/gnome/shell/favorite-apps: >-
@@ -280,6 +288,20 @@ desktop_environment_dconf_settings:
   /org/gnome/shell/extensions/tiling-assistant/single-screen-gap: "4"
   /org/gnome/shell/extensions/tiling-assistant/window-gap: "4"
   /org/gnome/shell/extensions/tiling-assistant/maximize-with-gap: "true"
+
+  # Desktop Icons NG (DING): icon-size is tiny, small, standard or large;
+  # start-corner is top-left, top-right, bottom-left or bottom-right
+  /org/gnome/shell/extensions/ding/icon-size: "'standard'"
+  /org/gnome/shell/extensions/ding/show-home: "true"
+  /org/gnome/shell/extensions/ding/show-trash: "false"
+  /org/gnome/shell/extensions/ding/show-volumes: "false"
+  /org/gnome/shell/extensions/ding/show-network-volumes: "true"
+  /org/gnome/shell/extensions/ding/start-corner: "'top-right'"
+  /org/gnome/shell/extensions/ding/add-volumes-opposite: "false"
+  /org/gnome/shell/extensions/ding/show-drop-place: "true"
+  /org/gnome/shell/extensions/ding/use-nemo: "false"
+  /org/gnome/shell/extensions/ding/show-link-emblem: "true"
+  /org/gnome/shell/extensions/ding/dark-text-in-labels: "false"
 
   # GPaste: a single clipboard, nothing persisted, no history UI.
   # PRIMARY (mouse selection) and CLIPBOARD (Ctrl+C) are kept in sync, so
