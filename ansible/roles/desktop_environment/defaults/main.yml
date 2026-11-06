@@ -326,6 +326,11 @@ desktop_environment_dconf_settings:
   /org/gnome/GPaste/sync-clipboard-to-primary: "''"
   /org/gnome/GPaste/sync-primary-to-clipboard: "''"
 
+  # Default terminal emulator (used by Nautilus "Open in Terminal", Ctrl+Alt+T
+  # and other apps that ask Gnome for a terminal)
+  /org/gnome/desktop/default-applications/terminal/exec: "'{{ desktop_environment_default_terminal_emulator }}'"
+  /org/gnome/desktop/default-applications/terminal/exec-arg: "'-e'"
+
   # Custom keybindings
   /org/gnome/settings-daemon/plugins/media-keys/custom-keybindings: >-
     ['/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/']
